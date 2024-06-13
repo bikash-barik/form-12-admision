@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Get and Save Mobile Location</title>
+</head>
+<body>
+    <button id="getLocationButton">Get Location</button>
+    <p id="location"></p>
+
+    <script>
+        document.getElementById('getLocationButton').addEventListener('click', function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                document.getElementById('location').innerHTML = "Geolocation is not supported by this browser.";
+            }
+        });
+
+        function showPosition(position) {
+            var latitude = position.coords.latitude;
+            var longitude = position.coords.longitude;
+            document.getElementById('location').innerHTML = "Latitude: " + latitude + 
+            "<br>Longitude: " + longitude;
+
+            // Send latitude and longitude to server for saving
+            saveLocation(latitude, longitude);
+        }
+
+        function showError(error) {
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    document.getElementById('location').innerHTML = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    document.getElementById('location').innerHTML = "Location information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    document.getElementById('location').innerHTML = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    document.getElementById('location').innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+
+        // Function to send latitude and longitude to server for saving
+        function saveLocation(latitude, longitude) {
+            fetch('https://tjz-backend-kyc.onrender.com/saveLocation', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    latitude: latitude,
+                    longitude: longitude
+                })
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log("Location saved successfully");
+                } else {
+                    console.error("Failed to save location");
+                }
+            })
+            .catch(error => {
+                console.error("Error saving location: ", error);
+            });
+        }
+    </script>
+</body>
+</html>
